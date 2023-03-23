@@ -67,11 +67,11 @@ void dis (unsigned int num)
 
 
 	if (num == 1){
-		GPIO = 0b00000000;
+		GPIO = 0b00000010;
 
 	}
 	else {
-		GPIO = 0b00100101;
+		GPIO = 0b00100011;
 	}
 
 	
