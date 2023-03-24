@@ -34,7 +34,7 @@ void main(void)
 	GPIO = 0x00; //Poner pines en bajo
 	
  
-  unsigned int time = 5;
+  	unsigned int time = 10;
 	unsigned int num = 1;
  
     //Loop forever
@@ -45,7 +45,7 @@ void main(void)
 		
 		delay(time);
 		num = 2;
-		dis(num);
+		dis(20);
 		
 		delay(time);
 			
@@ -67,11 +67,11 @@ void dis (unsigned int num)
 
 
 	if (num == 1){
-		GPIO = 0b00000010;
+		GPIO = 0b00100010;
 
 	}
 	else {
-		GPIO = 0b00100011;
+		GPIO = 0b00000011;
 	}
 
 	
