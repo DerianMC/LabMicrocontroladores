@@ -6,12 +6,11 @@
 typedef unsigned int word ;
 word __at 0x2007 __CONFIG = (_CP_OFF & _PWRTE_ON & _WDT_OFF & _INTRC_OSC_NOCLKOUT & _FCMEN_OFF & _IESO_OFF & _MCLRE_OFF);
 
-
+//Se definen 
 void delay(unsigned int tiempo);	
-void dis(unsigned char num);
-unsigned char var1 = 0;
-unsigned char var2 = 0;
-unsigned char value = 0;
+
+
+
 
  
 char digit1[10] = {0b000000, 0b000001, 0b000010,
@@ -35,9 +34,10 @@ void main() {
     GPIO = 0b000000;   
   	unsigned int time = 1;
 	unsigned char num = 1;
-	unsigned char seed = 0;
 	unsigned char var1 = 0;
 	unsigned char var2 = 0;
+	unsigned char counter1 = 0;
+	unsigned char counter2 = 0;
 	
 
 
@@ -57,6 +57,40 @@ void main() {
 
 		GPIO = digit2[var2];
 		delay(time);	*/
+
+		if (counter1 <= 19){
+			counter2 = counter1;
+			while (input_value == 1)
+			{
+				
+				var1 = (num - (num / 100)*100)/10;
+				var2 = (num - (num / 100)*100-((num - (num / 100)*100)/10)*10);	
+				GPIO = 0x17;
+				delay(time);
+				GPIO = 0x37;
+				delay(time);
+				input_value = GP3;
+				if (counter1==counter2){
+					counter1++;
+				}
+			}
+		
+	
+			GPIO = digit1[var1];
+			delay(time);
+			GPIO = digit2[var2];
+			delay(time);
+			
+		}
+		else{
+			GPIO = 0x17;
+			delay(time);
+			GPIO = 0x37;
+			delay(time);
+		}
+
+
+		/*
 		if (input_value == 1) {
 			var1 = (num - (num / 100)*100)/10;
 			var2 = (num - (num / 100)*100-((num - (num / 100)*100)/10)*10);	
@@ -72,9 +106,27 @@ void main() {
 			GPIO = digit2[var2];
 			delay(time);
 
-		}
-	
+		}*/
 
+
+
+		/*while (input_value == 1)
+		{
+			
+			var1 = (num - (num / 100)*100)/10;
+			var2 = (num - (num / 100)*100-((num - (num / 100)*100)/10)*10);	
+			GPIO = 0x17;
+			delay(time);
+			GPIO = 0x37;
+			delay(time);
+			input_value = GP3;
+		}
+		
+	
+		GPIO = digit1[var1];
+		delay(time);
+		GPIO = digit2[var2];
+		delay(time);*/
 
 
 
