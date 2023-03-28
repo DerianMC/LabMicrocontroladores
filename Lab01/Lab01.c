@@ -1,4 +1,3 @@
-
 #include <pic14/pic12f683.h>
 
 
@@ -8,20 +7,18 @@ word __at 0x2007 __CONFIG = (_CP_OFF & _PWRTE_ON & _WDT_OFF & _INTRC_OSC_NOCLKOU
 
 //Se definen 
 void delay(unsigned int tiempo);	
+void blink(void);
 
 
 
 
  
-char digit1[10] = {0b000000, 0b000001, 0b000010,
+char digit[10] = {0b000000, 0b000001, 0b000010,
 					0b000011, 0b000100, 0b000101,
 					0b000110, 0b000111, 0b010000,
 					0b010001};
 
-char digit2[10] = {0b100000, 0b100001, 0b100010,
-					0b100011, 0b100100, 0b100101,
-					0b100110, 0b100111, 0b110000,
-					0b110001}; 
+
 					
 
 
@@ -38,6 +35,7 @@ void main() {
 	unsigned char var2 = 0;
 	unsigned char counter1 = 0;
 	unsigned char counter2 = 0;
+	unsigned char mem[16];
 	
 
 
@@ -58,36 +56,71 @@ void main() {
 		GPIO = digit2[var2];
 		delay(time);	*/
 
-		if (counter1 <= 19){
+		if (counter1 < 16){
 			counter2 = counter1;
 			while (input_value == 1)
 			{
 				
-				var1 = (num - (num / 100)*100)/10;
-				var2 = (num - (num / 100)*100-((num - (num / 100)*100)/10)*10);	
+					
 				GPIO = 0x17;
 				delay(time);
 				GPIO = 0x37;
 				delay(time);
 				input_value = GP3;
 				if (counter1==counter2){
+					unsigned char i;
+					for(i=0;i<counter1;i++){
+						if (mem[i] == num){
+							mem[counter1] = num*counter1;
+						}
+						else{
+							mem[i] = num;
+						}
+					}
 					counter1++;
 				}
+				var1 = (num - (num / 100)*100)/10;
+				var2 = (num - (num / 100)*100-((num - (num / 100)*100)/10)*10);
 			}
-		
+			
+			
 	
-			GPIO = digit1[var1];
+			GPIO = digit[var1] | 0b000000;
 			delay(time);
-			GPIO = digit2[var2];
+			GPIO = digit[var2] | 0b100000;
 			delay(time);
+			
 			
 		}
 		else{
-			GPIO = 0x17;
-			delay(time);
-			GPIO = 0x37;
-			delay(time);
+			blink();
+			var1 = 0;
+			var2 = 0;
+			GPIO =  0b000000;
+			GPIO =  0b100000;
+			counter1 = 0;
 		}
+		/*else{
+			unsigned int i;
+			unsigned int j;
+
+			for(i=0;i<100000000;i++)
+				for(j=0;j<1275;j++){
+					GPIO = digit1[9];
+					delay(time);
+					GPIO = digit2[9];
+					delay(time);
+				}
+
+			GPIO = 0x17;
+			delay(100000000);
+			
+			GPIO = 0x17;
+			delay(100000000);
+
+
+			
+		}*/
 
 
 		/*
@@ -144,5 +177,19 @@ void delay(unsigned int tiempo)
 
 	for(i=0;i<tiempo;i++)
 	  for(j=0;j<1275;j++);
+}
+
+void blink(void){
+	unsigned int i;
+
+	
+	
+	
+
+
+
+    // Turn off the display
+    GPIO = 0x17;
+    delay(500);
 }
 
