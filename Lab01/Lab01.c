@@ -26,7 +26,7 @@ char digit[10] = {0b000000, 0b000001, 0b000010,
 
 
 void main() {
-    // Set GP1 and GP2 as outputs
+
     TRISIO = 0b00001000; 
     GPIO = 0b000000;   
   	unsigned int time = 1;
@@ -44,17 +44,7 @@ void main() {
 		num++;
 		unsigned char input_value = GP3;
 		
-		/*while (value == 0)
-		{
-		var1 = (num - (num / 100)*100)/10;
-		var2 = (num - (num / 100)*100-((num - (num / 100)*100)/10)*10);	
-		}
-		
-		GPIO = digit1[var1];
-		delay(time);
 
-		GPIO = digit2[var2];
-		delay(time);	*/
 
 		if (counter1 < 16){
 			counter2 = counter1;
@@ -71,10 +61,10 @@ void main() {
 					unsigned char i;
 					for(i=0;i<counter1;i++){
 						if (mem[i] == num){
-							mem[counter1] = num*counter1;
+							num = num*i;
 						}
 						else{
-							mem[i] = num;
+							mem[counter1] = num;
 						}
 					}
 					counter1++;
@@ -92,78 +82,31 @@ void main() {
 			
 			
 		}
-		else{
-			blink();
-			var1 = 0;
-			var2 = 0;
-			GPIO =  0b000000;
-			GPIO =  0b100000;
-			counter1 = 0;
-		}
-		/*else{
-			unsigned int i;
-			unsigned int j;
-
-			for(i=0;i<100000000;i++)
-				for(j=0;j<1275;j++){
-					GPIO = digit1[9];
-					delay(time);
-					GPIO = digit2[9];
-					delay(time);
-				}
-
-			GPIO = 0x17;
-			delay(100000000);
-			
-			GPIO = 0x17;
-			delay(100000000);
-
-
-			
-		}*/
-
-
-		/*
-		if (input_value == 1) {
-			var1 = (num - (num / 100)*100)/10;
-			var2 = (num - (num / 100)*100-((num - (num / 100)*100)/10)*10);	
-			GPIO = digit1[0];
-			delay(time);
-			GPIO = digit2[0];
-			delay(time);
-		} 
-		
 		else {
-			GPIO = digit1[var1];
+			var1 = (mem[15] - (mem[15] / 100)*100)/10;
+			var2 = (mem[15] - (mem[15] / 100)*100-((mem[15] - (mem[15] / 100)*100)/10)*10);
+			GPIO = digit[var1] | 0b000000;
 			delay(time);
-			GPIO = digit2[var2];
+			GPIO = digit[var2] | 0b100000;
 			delay(time);
-
-		}*/
-
-
-
-		/*while (input_value == 1)
-		{
+			counter2 = counter1;
+			while (input_value == 1)
+			{
+				input_value = GP3;
+				if (counter1==counter2){
+					blink();
+					var1 = 0;
+					var2 = 0;
+					GPIO =  0b000000;
+					GPIO =  0b100000;
+					counter1 = 0;
+					counter2 = 0;
+				}
+			}
 			
-			var1 = (num - (num / 100)*100)/10;
-			var2 = (num - (num / 100)*100-((num - (num / 100)*100)/10)*10);	
-			GPIO = 0x17;
-			delay(time);
-			GPIO = 0x37;
-			delay(time);
-			input_value = GP3;
 		}
 		
-	
-		GPIO = digit1[var1];
-		delay(time);
-		GPIO = digit2[var2];
-		delay(time);*/
-
-
-
-
+		
 
     }
 }
@@ -180,16 +123,163 @@ void delay(unsigned int tiempo)
 }
 
 void blink(void){
-	unsigned int i;
+	GPIO = 0x17;
+    delay(80);
 
-	
-	
-	
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
 
 
 
-    // Turn off the display
+
     GPIO = 0x17;
-    delay(500);
+    delay(80);
+	
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+
+
+
+    GPIO = 0x17;
+    delay(80);
+
+
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+
+
+
+
+    GPIO = 0x17;
+    delay(80);
+	
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+	GPIO = 0b010001;
+    delay(5);
+	GPIO = 0b110001;
+    delay(5);
+
+
+
+
+    GPIO = 0x17;
+    delay(80);
 }
 
