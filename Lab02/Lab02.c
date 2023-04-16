@@ -2,23 +2,24 @@
 #include <util/delay.h>
 #include <avr/interrupt.h>
 
-
+//Definición de función encarda de mostrar el número de 2 dígitos
 void display(unsigned char num);
-char digit[10] = {0b000000, 0b000001, 0b000010,
-					0b000011, 0b000100, 0b000101,
-					0b000110, 0b000111, 0b001000,
-					0b001001};
 
+//Se crea un arreglo para cada etapa del proceso
+//En estos arreglos se guardan los tiempos correspondientes a cada etapa
 unsigned char suminis_agua[3] = {1, 2, 3};
 unsigned char lavar[3] = {3, 7, 10};
 unsigned char enjuagar[3] = {2, 4, 5};
 unsigned char centrifugar[3] = {3, 6, 9};
 
+//count1: contador para el display
 int count1 = 0x00;
+//count2: contador para la cuenta regresiva
 int count2 = 0x00;
+//conm: variable utilizada para la conmutación del display
 int conm = 0x00;
-int COUNT_DOWN = 0xF2;
-int nxt_COUNT_DOWN = 0x00;
+int COUNT_DOWN = 0x62;
+int nxt_count2 = 0x00;
 int MODO = 3;
 int start = 0;
 
@@ -60,7 +61,7 @@ ISR(TIMER0_COMPA_vect) {
   if(count2 == 1000){
 
     if((state == PAUSA) | (state == STAND_BY)){
-      COUNT_DOWN = COUNT_DOWN;
+      ;
     }
     else{
       COUNT_DOWN--;
@@ -74,7 +75,19 @@ ISR(TIMER0_COMPA_vect) {
 ISR(PCINT0_vect) {
 
   if (PINB & (1 << PB6)) {
-    start = 1;
+    if(state == STAND_BY){
+      start = 1;
+    }
+    else if(state == PAUSA){
+      next_state = prev_state;
+    }
+    else{
+      
+        prev_state = state;
+        nxt_count2 = count2;
+        next_state = PAUSA;
+      
+    }
     }
   else if (PINA & (1 << PA0)) {
       MODO = 0;
@@ -98,16 +111,21 @@ int main(void)
   DDRD = 0xFF;
   
 
-  next_state = STAND_BY;
+  state = STAND_BY;
 
   
   while (1) {
-    state = next_state;
+    if(PINB & (1 << PB6)){
+      ;
+    }
+    else{
+      state = next_state;
+    }
     
     switch (state)
     {
     case STAND_BY:
-        display(98);
+        display(0xEF);
         if(MODO == 0){
           PORTD = 0x01;
           
@@ -167,7 +185,8 @@ int main(void)
         }
       break;
     case PAUSA:
-      display(98);
+      display(COUNT_DOWN);
+      count2 = nxt_count2;
       break;
     default:
       break;
@@ -185,6 +204,10 @@ void display(unsigned char num){
   var1 = (num - (num / 100)*100)/10;
 	var2 = (num - (num / 100)*100-((num - (num / 100)*100)/10)*10);
 
+  if(state == STAND_BY){
+    var1 = 0x0A;
+    var2 = 0x0E;
+  }
   if (conm == 0x00){
     PORTB = (var1 | 0x10);
   }
