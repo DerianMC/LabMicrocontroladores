@@ -126,6 +126,7 @@ int main(void)
       break;
     case LLENADO:
         display(COUNT_DOWN);
+        PORTD |= (1 << 3);
         if(COUNT_DOWN < 0){
           COUNT_DOWN = lavar[MODO];
           count2 = 0;
@@ -134,6 +135,8 @@ int main(void)
       break;
     case LAVADO:
       display(COUNT_DOWN);
+      PORTD &= ~(1 << 3);
+      PORTD |= (1 << 4);
       if(COUNT_DOWN < 0){
           COUNT_DOWN = enjuagar[MODO];
           count2 = 0;
@@ -143,6 +146,8 @@ int main(void)
       break;
     case ENJUAGUE:
       display(COUNT_DOWN);
+      PORTD &= ~(1 << 4);
+      PORTD |= (1 << 5);
       if(COUNT_DOWN < 0){
           COUNT_DOWN = centrifugar[MODO];
           count2 = 0;
@@ -151,6 +156,8 @@ int main(void)
       break;
     case CENTRIFUGADO:
       display(COUNT_DOWN);
+      PORTD &= ~(1 << 5);
+      PORTD |= (1 << 6);
       if(COUNT_DOWN < 0){
           count2 = 0;
           next_state = STAND_BY;
