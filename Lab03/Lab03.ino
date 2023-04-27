@@ -1,59 +1,40 @@
-#define trigPin 10
-#define echoPin 9
+#include <Adafruit_PCD8544.h>
 
-int counter;
-float duration;
-float distance;
-unsigned long time;
+// Create an instance of the PCD8544 library
+Adafruit_PCD8544 display = Adafruit_PCD8544(7, 6, 5, 4, 3);
 
+int val = 0;
 
-void setup() 
-{
-  Serial.begin ( 9600);
-  pinMode( trigPin, OUTPUT );
-  pinMode( echoPin, INPUT );
+void setup() {
+  // Initialize the display
+  display.begin();
+  // Set the contrast (0 to 127)
+  display.setContrast(60);
+  // Clear the display
+  display.clearDisplay();
+  // Set the cursor to the top-left corner
+  display.setCursor(0,0);
+  // Print "Hello World!"
+  display.println("V1:");
+  display.println("V2");
+  display.println("V3");
+  display.println("V4");
+
+  // Display the contents of the buffer
+  display.display();
 }
 
-void loop() 
-{
-  digitalWrite( trigPin, LOW ); 
-  delayMicroseconds( 2 );
- 
-  digitalWrite( trigPin, HIGH );
-  delayMicroseconds( 10 );
-  digitalWrite( trigPin, LOW );
-  
-  //duration = pulseIn( echoPin, HIGH ); 
+void loop() {
 
-  // Get Pulse duration with more accuracy than pulseIn()
-  duration = 0;
-  counter = 0;
-  while(  --counter!=0  )
-  {
-  if( PINB & 2 ) 
-  {
-    time = micros();
-    break;
-  }
-  }
-  while( --counter!=0 )
-  {
-  if( (PINB & 2)==0 ) 
-  {
-    duration = micros()-time;
-    break;
-  }
-  }
+  int val = analogRead(A0);
 
-  distance = ( duration/2 ) * 0.0344;
-  
-  Serial.print("Distance: ");
-
-  if     ( distance > 400 ) Serial.print("> 400");
-  else if( distance < 2 )   Serial.print("< 2");
-  else                      Serial.print( distance );
-
-  Serial.println( " cm" );
-
-  delay( 1000 );
+  display.clearDisplay();
+  display.setCursor(0,10);
+  display.print("Var value ");
+  display.print(val);
+  display.setCursor(0,20);
+  display.print("Var value 2 ");
+  display.print(val);
+  display.display();
+  // Do nothing
 }
