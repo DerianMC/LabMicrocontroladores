@@ -3,4 +3,4 @@ all:
 	rm -f *.bin *.with_bootloader.hex *.eep *.elf *.csv
 
 clean:
-	rm -f *.bin *.hex *.eep *.elf *.csv
+	rm -f *.bin *.eep *.elf *.csv
