@@ -3,6 +3,7 @@ import serial
 import csv 
 import numpy 
 
+#Establece ser como serial
 ser = serial.Serial(
     port='/tmp/ttyS1',\
     baudrate=9600,\
@@ -11,11 +12,11 @@ ser = serial.Serial(
     bytesize=serial.EIGHTBITS,\
     timeout=0\
     )
-#ser=serial.Serial('/tmp/ttyS1', 9600)
-#f= open('output.csv', 'w+')
 
+#Abre csv para escritura
 with open('output.csv', 'w', encoding='UTF8', newline='') as f:
     writer = csv.writer(f)
+    #Envía header de csv
     header = ['Modo', 'V1', 'V2', 'V3', 'V4']
     writer.writerow(header)
 
@@ -28,29 +29,39 @@ with open('output.csv', 'w', encoding='UTF8', newline='') as f:
     clmn = ""
     i = False
     while True:
-        
+        #Inicia para cada valor de serial
         for c in ser.read():
+            #Carga caracter en c
             c=chr(c)
-            #print(c, end='')
+            
+            #Con i en True se inicia string
+            #Este string contendrá los caracteres a ingresar en csv
+            #Es reiniciado para cuando i en True
             if(i == True):
                 string = []
                 i = False
+            #Se tiene como caracter de para los :
+            #Cuando llega este caracter se corta el string
+            #Mientras no haya llegado se entra en if
             if(c != ":"): 
+                #Cuando llega un ";" se tiene como finalizador del valor 
+                #Entonces cuando ";" llega se hace append
                 if(c == ";"):
                     string.append(clmn)
+                    #Se reinicia clmn
                     clmn = ""
                 else:
+                    #Cuando no ha llegado ";" se concatenan caracteres de llegada
                     clmn = clmn+c
             else:
+                #Cuando llega ":" se corta
+                #Se imprime string completo
                 print(string)
                 clmn = ""
                 i = True
+            #Cuando el tamaño de string contenga lo requerido se escribe row en csv
             if(numpy.size(string) == 5):
                 writer.writerow(string)
-            '''if(c != ":"):
-                break
-            else:
-                writer.writerow(string)'''
         
 
 
