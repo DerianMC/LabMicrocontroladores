@@ -96,7 +96,7 @@ void loop() {
   }
   
   //Cuando cualquiera de los valores de V* es mayor a 20 enciende LED de advertencia
-  if(abs(V1) > 20 || abs(V2) > 20 || abs(V3) > 20 || abs(V4) > 20){
+  if((abs(V1) > 20 || abs(V2) > 20 || abs(V3) > 20 || abs(V4) > 20 and digitalRead(modo) == HIGH) || (abs(V1/0.707) > 20 || abs(V2/0.707) > 20 || abs(V3/0.707) > 20 || abs(V4) > 20 and digitalRead(modo) == LOW)){
     digitalWrite(2, HIGH);
   }
   else{
@@ -123,7 +123,7 @@ void loop() {
   
 
   display.display(); 
-
+  
 
   //Si switch serial en alto empieza a enviar datos por puerto serial
   //Envía modo de operación, así como cada una de las tensiones
