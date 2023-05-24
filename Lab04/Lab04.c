@@ -72,21 +72,8 @@ int main(void)
 	while (1) {
 		gfx_fillScreen(LCD_BLACK);
 		gfx_setCursor(15, 36);
-		gfx_puts("PLANETS!");
-		gfx_fillCircle(120, 160, 40, LCD_YELLOW);
-		gfx_drawCircle(120, 160, 55, LCD_GREY);
-		gfx_drawCircle(120, 160, 75, LCD_GREY);
-		gfx_drawCircle(120, 160, 100, LCD_GREY);
-
-		gfx_fillCircle(120 + (sin(d2r(p1)) * 55),
-			       160 + (cos(d2r(p1)) * 55), 5, LCD_RED);
-		gfx_fillCircle(120 + (sin(d2r(p2)) * 75),
-			       160 + (cos(d2r(p2)) * 75), 10, LCD_WHITE);
-		gfx_fillCircle(120 + (sin(d2r(p3)) * 100),
-			       160 + (cos(d2r(p3)) * 100), 8, LCD_BLUE);
-		p1 = (p1 + 3) % 360;
-		p2 = (p2 + 2) % 360;
-		p3 = (p3 + 1) % 360;
+		gfx_puts("Prueba1!");
+		
 		lcd_show_frame();
 	}
 }
