@@ -206,12 +206,18 @@ int main(void)
 	gfx_fillCircle(220, 250, 10, LCD_BLUE);
 	gfx_setTextSize(2);
 	gfx_setCursor(15, 25);
-	gfx_puts("STM32F4-DISCO");
+	gfx_puts("Sismografo");
 	gfx_setTextSize(1);
 	gfx_setCursor(15, 49);
-	gfx_puts("Simple example to put some");
+	gfx_puts("STM32: GPIO,");
 	gfx_setCursor(15, 60);
-	gfx_puts("stuff on the LCD screen.");
+	gfx_puts("ADC, comunicaciones,");
+	gfx_setCursor(15, 71);
+	gfx_puts("Iot");
+	gfx_setCursor(15, 85);
+	gfx_puts("Estudiante:");
+	gfx_setCursor(15, 96);
+	gfx_puts("Derian Monge Calvo");
 	lcd_show_frame();
 	console_puts("Now it has a bit of structured graphics.\n");
 	console_puts("Press a key for some simple animation.\n");
@@ -317,18 +323,29 @@ int main(void)
 		sprintf(a, "%d", x);
 		sprintf(b, "%d", y);
 		sprintf(c, "%d", z);
+
+
+		gfx_setTextColor(LCD_BLUE, LCD_BLACK);
+		gfx_setTextSize(2);
+
 		gfx_fillScreen(LCD_BLACK);
-		gfx_setCursor(15, 36);
+		gfx_setCursor(10, 36);
+		gfx_puts("Sismografo UCR");
+
+		gfx_setTextColor(LCD_YELLOW, LCD_BLACK);
+		gfx_setTextSize(1);
+
+		gfx_setCursor(100, 106);
 		gfx_puts("x=");
-		gfx_setCursor(100, 36);
+		gfx_setCursor(120, 106);
 		gfx_puts(a);
-		gfx_setCursor(15, 76);
+		gfx_setCursor(100, 126);
 		gfx_puts("y=");
-		gfx_setCursor(100, 76);
+		gfx_setCursor(120, 126);
 		gfx_puts(b);
-		gfx_setCursor(15, 116);
+		gfx_setCursor(100, 146);
 		gfx_puts("z=");
-		gfx_setCursor(100, 116);
+		gfx_setCursor(120, 146);
 		gfx_puts(c);
 		lcd_show_frame();
 		
