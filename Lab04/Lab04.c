@@ -20,6 +20,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <math.h>
+#include <setjmp.h>
 #include "clock.h"
 #include "console.h"
 #include "sdram.h"
@@ -32,10 +33,141 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/spi.h>
+#include <libopencm3/stm32/usart.h>
+#include <libopencm3/cm3/nvic.h>
+#include <libopencm3/stm32/iwdg.h>
+#include <libopencm3/cm3/scb.h>
+#include <libopencm3/cm3/cortex.h>
 #include "clock.h"
-#include "console.h"
+
 
 #define L3GD20_SENSITIVITY_250DPS  (0.00875F)  
+
+//-----------------------------------------------
+
+#define CONSOLE_UART	USART1
+
+
+
+/* this is for fun, if you type ^C to this example it will reset */
+#define RESET_ON_CTRLC
+
+#ifdef RESET_ON_CTRLC
+
+/* Jump buffer for setjmp/longjmp */
+jmp_buf	jump_buf;
+
+static void do_the_nasty(void);
+/*
+ * do_the_nasty
+ *
+ * This is a hack to implement the equivalent of a signal interrupt
+ * in a system without signals or a kernel or scheduler. Basically
+ * when the console_getc() function reads a '^C' character, it munges
+ * the return address of the interrupt to here, and then this function
+ * does a longjump to the last place we did a setjmp.
+ */
+static void do_the_nasty(void)
+{
+	longjmp(jump_buf, 1);
+	while (1);
+}
+#endif
+
+/* This is a ring buffer to holding characters as they are typed
+ * it maintains both the place to put the next character received
+ * from the UART, and the place where the last character was
+ * read by the program. See the README file for a discussion of
+ * the failure semantics.
+ */
+#define RECV_BUF_SIZE	128		/* Arbitrary buffer size */
+
+		/* Next place to read */
+
+/* For interrupt handling we add a new function which is called
+ * when recieve interrupts happen. The name (usart1_isr) is created
+ * by the irq.json file in libopencm3 calling this interrupt for
+ * USART1 'usart1', adding the suffix '_isr', and then weakly binding
+ * it to the 'do nothing' interrupt function in vec.c.
+ *
+ * By defining it in this file the linker will override that weak
+ * binding and instead bind it here, but you have to get the name
+ * right or it won't work. And you'll wonder where your interrupts
+ * are going.
+ */
+
+
+/*
+ * console_putc(char c)
+ *
+ * Send the character 'c' to the USART, wait for the USART
+ * transmit buffer to be empty first.
+ */
+
+
+/*
+ * char = console_getc(int wait)
+ *
+ * Check the console for a character. If the wait flag is
+ * non-zero. Continue checking until a character is received
+ * otherwise return 0 if called and no character was available.
+ *
+ * The implementation is a bit different however, now it looks
+ * in the ring buffer to see if a character has arrived.
+ */
+
+/*
+ * void console_puts(char *s)
+ *
+ * Send a string to the console, one character at a time, return
+ * after the last character, as indicated by a NUL character, is
+ * reached.
+ */
+
+
+/*
+ * int console_gets(char *s, int len)
+ *
+ * Wait for a string to be entered on the console, limited
+ * support for editing characters (back space and delete)
+ * end when a <CR> character is received.
+ */
+
+
+void countdown(void);
+
+/*
+ * countdown
+ *
+ * Count down for 20 seconds to 0.
+ *
+ * This provides an example function which is constantly
+ * printing for 20 seconds and not looking for typed characters.
+ * however with the interrupt driven receieve queue you can type
+ * ^C while it is counting down and it will be interrupted.
+ */
+void countdown(void)
+{
+	int i = 200;
+	while (i-- > 0) {
+		console_puts("Countdown: ");
+		console_putc((i / 600) + '0');
+		console_putc(':');
+		console_putc(((i % 600) / 100) + '0');
+		console_putc((((i % 600) / 10) % 10) + '0');
+		console_putc('.');
+		console_putc(((i % 600) % 10) + '0');
+		console_putc('\r');
+		msleep(100);
+	}
+}
+
+
+//-----------------------------------------------
+
+
+
+
 
 /*
  * Functions defined for accessing the SPI port 8 bits at a time
@@ -52,7 +184,13 @@ void put_status(char *m);
 
 //-----------------------------------------------
 void put_status(char *m)
-{
+{	
+	//--------------
+	char buf[128];
+	int	len;
+	bool pmask;
+	//--------------
+
 	uint16_t stmp;
 
 	console_puts(m);
@@ -248,6 +386,40 @@ int main(void)
 	gfx_setTextColor(LCD_YELLOW, LCD_BLACK);
 	gfx_setTextSize(3);
 	//-----------------------------------------------------------------------
+
+	char buf[128];
+	int	len;
+	bool pmask;
+	rcc_periph_clock_enable(RCC_GPIOA);
+	gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO9 | GPIO10);
+	gpio_set_af(GPIOA, GPIO_AF7, GPIO9 | GPIO10);
+	rcc_periph_clock_enable(RCC_USART1);
+
+	usart_set_baudrate(CONSOLE_UART, 115200);
+	usart_set_databits(CONSOLE_UART, 8);
+	usart_set_stopbits(CONSOLE_UART, USART_STOPBITS_1);
+	usart_set_mode(CONSOLE_UART, USART_MODE_TX_RX);
+	usart_set_parity(CONSOLE_UART, USART_PARITY_NONE);
+	usart_set_flow_control(CONSOLE_UART, USART_FLOWCONTROL_NONE);
+	usart_enable(CONSOLE_UART);
+
+	/* Enable interrupts from the USART */
+	nvic_enable_irq(NVIC_USART1_IRQ);
+
+	/* Specifically enable recieve interrupts */
+	usart_enable_rx_interrupt(CONSOLE_UART);
+
+		console_puts("\nUART Demonstration Application\n");
+#ifdef RESET_ON_CTRLC
+	console_puts("Press ^C at any time to reset system.\n");
+	pmask = cm_mask_interrupts(0);
+	cm_mask_interrupts(pmask);
+	if (setjmp(jump_buf)) {
+		console_puts("\nInterrupt received! Restarting from the top\n");
+	}
+#endif
+
+	//-----------------------------------------------------------
 	int16_t vecs[3];
 	int16_t baseline[3];
 	int tmp, i;
@@ -306,19 +478,19 @@ int main(void)
 	
 
 	count = 0;
-	bool USART = false; 
+	bool USART_mode = false; 
 
 	//-----------------------------------------------------------------------
-	while (1) {
+	while (1) {	
 
 		if (gpio_get(GPIOA, GPIO0)) {
 			while (gpio_get(GPIOA, GPIO0))
 			{
 				__asm__("nop");
 			}
-			USART = !USART;
+			USART_mode = !USART_mode;
 		}
-		if(USART == true){
+		if(USART_mode == true){
 			gpio_toggle(GPIOG, GPIO13);
 		}
 		else{
@@ -333,15 +505,11 @@ int main(void)
 		tmp = read_xyz(vecs);
 		for (i = 0; i < 3; i++) {
 			int pad;
-			console_puts(axes[i]);
+			
 			tmp = vecs[i] - baseline[i];
-			pad = print_decimal(tmp);
-			pad = 15 - pad;
-			while (pad--) {
-				console_puts(" ");
-			}
+
 		}
-		console_putc('\r');
+		
 		if (count == 100) {
 			baseline[0] = vecs[0];
 			baseline[1] = vecs[1];
@@ -362,6 +530,8 @@ int main(void)
 		sprintf(b, "%d", y);
 		sprintf(c, "%d", z);
 
+		console_puts(a);
+		console_putc('\r');
 
 		gfx_setTextColor(LCD_BLUE, LCD_BLACK);
 		gfx_setTextSize(2);
@@ -385,7 +555,7 @@ int main(void)
 		gfx_puts("z=");
 		gfx_setCursor(120, 146);
 		gfx_puts(c);
-		if(USART == true){
+		if(USART_mode == true){
 			gfx_setTextSize(2);
 			gfx_setCursor(100, 300);
 			gfx_puts("USART ON");
@@ -396,6 +566,7 @@ int main(void)
 			gfx_puts("USART OFF");
 		}
 		lcd_show_frame();
+		
 		
 	}
 }
