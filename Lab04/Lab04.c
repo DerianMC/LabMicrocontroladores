@@ -180,6 +180,27 @@ char *axes[] = { "X: ", "Y: ", "Z: " };
 
 //-----------------------------------------------
 
+static void button_setup(void)
+{
+	/* Enable GPIOA clock. */
+	rcc_periph_clock_enable(RCC_GPIOA);
+
+	/* Set GPIO0 (in GPIO port A) to 'input open-drain'. */
+	gpio_mode_setup(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GPIO0);
+}
+
+static void gpio_setup(void)
+{
+	/* Enable GPIOG clock. */
+	rcc_periph_clock_enable(RCC_GPIOG);
+
+	/* Set GPIO13 (in GPIO port G) to 'output push-pull'. */
+	gpio_mode_setup(GPIOG, GPIO_MODE_OUTPUT,
+			GPIO_PUPD_NONE, GPIO13);
+}
+
+//-----------------------------------------------
+
 /*
  * This is our example, the heavy lifing is actually in lcd-spi.c but
  * this drives that code.
@@ -188,7 +209,8 @@ int main(void)
 {
 
 
-
+	button_setup();
+	gpio_setup();
 	clock_setup();
 	console_setup(115200);
 	sdram_init();
@@ -284,11 +306,27 @@ int main(void)
 	
 
 	count = 0;
+	bool USART = false; 
 
 	//-----------------------------------------------------------------------
 	while (1) {
 
-		
+		if (gpio_get(GPIOA, GPIO0)) {
+			while (gpio_get(GPIOA, GPIO0))
+			{
+				__asm__("nop");
+			}
+			USART = !USART;
+		}
+		if(USART == true){
+			gpio_toggle(GPIOG, GPIO13);
+		}
+		else{
+			gpio_clear(GPIOG, GPIO13);
+			gfx_setTextSize(2);
+			gfx_setCursor(100, 300);
+			gfx_puts("USART OFF");
+		}
 		
 		
 		//-----------------------------
@@ -347,6 +385,16 @@ int main(void)
 		gfx_puts("z=");
 		gfx_setCursor(120, 146);
 		gfx_puts(c);
+		if(USART == true){
+			gfx_setTextSize(2);
+			gfx_setCursor(100, 300);
+			gfx_puts("USART ON");
+		}
+		else{
+			gfx_setTextSize(2);
+			gfx_setCursor(80, 300);
+			gfx_puts("USART OFF");
+		}
 		lcd_show_frame();
 		
 	}
