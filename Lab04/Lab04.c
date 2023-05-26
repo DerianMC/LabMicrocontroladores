@@ -21,12 +21,15 @@
 #include <stdio.h>
 #include <math.h>
 #include <setjmp.h>
+#include <unistd.h>
+#include <string.h>
+
 #include "clock.h"
 #include "console.h"
 #include "sdram.h"
 #include "lcd-spi.h"
 #include "gfx.h"
-
+#include "clock.h"
 
 
 #include <stdint.h>
@@ -38,7 +41,9 @@
 #include <libopencm3/stm32/iwdg.h>
 #include <libopencm3/cm3/scb.h>
 #include <libopencm3/cm3/cortex.h>
-#include "clock.h"
+#include <libopencm3/stm32/adc.h>
+#include <libopencm3/stm32/dac.h>
+
 
 
 #define L3GD20_SENSITIVITY_250DPS  (0.00875F)  
@@ -335,9 +340,35 @@ static void gpio_setup(void)
 	/* Set GPIO13 (in GPIO port G) to 'output push-pull'. */
 	gpio_mode_setup(GPIOG, GPIO_MODE_OUTPUT,
 			GPIO_PUPD_NONE, GPIO13);
+	gpio_mode_setup(GPIOG, GPIO_MODE_OUTPUT,
+			GPIO_PUPD_NONE, GPIO14);
 }
 
 //-----------------------------------------------
+
+static void adc_setup(void)
+{	
+	rcc_periph_clock_enable(RCC_ADC1);
+	gpio_mode_setup(GPIOA, GPIO_MODE_ANALOG, GPIO_PUPD_NONE, GPIO2);
+	adc_power_off(ADC1);
+	adc_disable_scan_mode(ADC1);
+	adc_set_sample_time_on_all_channels(ADC1, ADC_SMPR_SMP_3CYC);
+	adc_power_on(ADC1);
+
+}
+
+
+static uint16_t read_adc_naiive(uint8_t channel)
+{
+	uint8_t channel_array[16];
+	channel_array[0] = channel;
+	adc_set_regular_sequence(ADC1, 1, channel_array);
+	adc_start_conversion_regular(ADC1);
+	while (!adc_eoc(ADC1));
+	uint16_t reg16 = adc_read_regular(ADC1);
+	return reg16;
+}
+	//-----------------------------------------------------------
 
 /*
  * This is our example, the heavy lifing is actually in lcd-spi.c but
@@ -353,6 +384,7 @@ int main(void)
 	console_setup(115200);
 	sdram_init();
 	lcd_spi_init();
+	adc_setup();
 	console_puts("LCD Initialized\n");
 	console_puts("Should have a checker pattern, press any key to proceed\n");
 	msleep(2000);
@@ -420,6 +452,8 @@ int main(void)
 #endif
 
 	//-----------------------------------------------------------
+
+	
 	int16_t vecs[3];
 	int16_t baseline[3];
 	int tmp, i;
@@ -481,8 +515,8 @@ int main(void)
 	bool USART_mode = false; 
 
 	//-----------------------------------------------------------------------
-	while (1) {	
-
+	while (1) {
+		
 		if (gpio_get(GPIOA, GPIO0)) {
 			while (gpio_get(GPIOA, GPIO0))
 			{
@@ -530,8 +564,11 @@ int main(void)
 		sprintf(b, "%d", y);
 		sprintf(c, "%d", z);
 
-		console_puts(a);
-		console_putc('\r');
+		char v[10];
+		uint16_t input_adc1 = read_adc_naiive(2);
+		sprintf(v, "%d", input_adc1);
+
+		
 
 		gfx_setTextColor(LCD_BLUE, LCD_BLACK);
 		gfx_setTextSize(2);
@@ -541,28 +578,48 @@ int main(void)
 		gfx_puts("Sismografo UCR");
 
 		gfx_setTextColor(LCD_YELLOW, LCD_BLACK);
-		gfx_setTextSize(1);
+		gfx_setTextSize(2);
 
-		gfx_setCursor(100, 106);
+		gfx_setCursor(90, 106);
 		gfx_puts("x=");
-		gfx_setCursor(120, 106);
+		gfx_setCursor(130, 106);
 		gfx_puts(a);
-		gfx_setCursor(100, 126);
+		gfx_setCursor(90, 146);
 		gfx_puts("y=");
-		gfx_setCursor(120, 126);
+		gfx_setCursor(130, 146);
 		gfx_puts(b);
-		gfx_setCursor(100, 146);
+		gfx_setCursor(90, 186);
 		gfx_puts("z=");
-		gfx_setCursor(120, 146);
+		gfx_setCursor(130, 186);
 		gfx_puts(c);
+		gfx_setCursor(90, 226);
+		gfx_setTextColor(LCD_GREEN, LCD_BLACK);
+
+		gfx_puts("V=");
+		gfx_setCursor(130, 226);
+		gfx_puts(v);
+		if(input_adc1<7){
+			gfx_setTextColor(LCD_RED, LCD_BLACK);
+			gfx_setCursor(10, 266);
+			gpio_toggle(GPIOG, GPIO14);
+			gfx_puts("Bateria baja");
+		}
+		else{
+			gpio_clear(GPIOG, GPIO14);
+		}
+
+		gfx_setTextColor(LCD_MAGENTA, LCD_BLACK);
 		if(USART_mode == true){
 			gfx_setTextSize(2);
-			gfx_setCursor(100, 300);
+			gfx_setCursor(10, 300);
 			gfx_puts("USART ON");
+			char message = strcat(v,";");
+			console_puts("message");
+			console_putc('\r');
 		}
 		else{
 			gfx_setTextSize(2);
-			gfx_setCursor(80, 300);
+			gfx_setCursor(10, 300);
 			gfx_puts("USART OFF");
 		}
 		lcd_show_frame();
