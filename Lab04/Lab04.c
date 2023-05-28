@@ -162,7 +162,6 @@ void countdown(void)
 		console_putc((((i % 600) / 10) % 10) + '0');
 		console_putc('.');
 		console_putc(((i % 600) % 10) + '0');
-		console_putc('\r');
 		msleep(100);
 	}
 }
@@ -613,9 +612,16 @@ int main(void)
 			gfx_setTextSize(2);
 			gfx_setCursor(10, 300);
 			gfx_puts("USART ON");
-			char message = strcat(v,";");
-			console_puts("message");
-			console_putc('\r');
+			print_decimal(x);
+			console_puts(";");
+			print_decimal(y);
+			console_puts(";");
+			print_decimal(z);
+			console_puts(";");
+			print_decimal(input_adc1);
+			console_puts(";");
+			console_puts(":");
+
 		}
 		else{
 			gfx_setTextSize(2);
