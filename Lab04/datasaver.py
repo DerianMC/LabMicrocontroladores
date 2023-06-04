@@ -8,6 +8,7 @@ import ssl, socket
 
 
 #Se establecen valores para comunicacion
+#El dashboard utilizado tiene el nombre STM32-C04938
 line = []
 data=dict()
 broker = "iot.eie.ucr.ac.cr"
