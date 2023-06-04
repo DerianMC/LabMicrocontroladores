@@ -17,6 +17,8 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+//Se importan librerias
+
 #include <stdint.h>
 #include <stdio.h>
 #include <math.h>
@@ -45,10 +47,11 @@
 #include <libopencm3/stm32/dac.h>
 
 
-
+//Se define sensivilidad para sensor
 #define L3GD20_SENSITIVITY_250DPS  (0.00875F)  
 
 //-----------------------------------------------
+//Funciones y definiciones para comunicacion USART
 
 #define CONSOLE_UART	USART1
 
@@ -171,7 +174,7 @@ void countdown(void)
 
 
 
-
+//Definiciones para SPI
 
 /*
  * Functions defined for accessing the SPI port 8 bits at a time
@@ -187,6 +190,8 @@ void put_status(char *m);
 
 
 //-----------------------------------------------
+//Funciones para medicion de ejes
+
 void put_status(char *m)
 {	
 	//--------------
@@ -322,6 +327,8 @@ char *axes[] = { "X: ", "Y: ", "Z: " };
 
 //-----------------------------------------------
 
+//Definiciones para botones
+
 static void button_setup(void)
 {
 	/* Enable GPIOA clock. */
@@ -344,7 +351,7 @@ static void gpio_setup(void)
 }
 
 //-----------------------------------------------
-
+//Definiciones para medicion ADC para puerto 2 
 static void adc_setup(void)
 {	
 	rcc_periph_clock_enable(RCC_ADC1);
@@ -515,7 +522,7 @@ int main(void)
 
 	//-----------------------------------------------------------------------
 	while (1) {
-		
+		//Se cambia USART_mode cuando se presiona boton A0
 		if (gpio_get(GPIOA, GPIO0)) {
 			while (gpio_get(GPIOA, GPIO0))
 			{
@@ -523,18 +530,18 @@ int main(void)
 			}
 			USART_mode = !USART_mode;
 		}
+		//Si USART_mode en alto se hace toggle de GPIO13
 		if(USART_mode == true){
 			gpio_toggle(GPIOG, GPIO13);
 		}
+		//Si no se apaga GPIO13
 		else{
 			gpio_clear(GPIOG, GPIO13);
-			gfx_setTextSize(2);
-			gfx_setCursor(100, 300);
-			gfx_puts("USART OFF");
 		}
 		
 		
 		//-----------------------------
+		//Se realiza lectura de giroscopio
 		tmp = read_xyz(vecs);
 		for (i = 0; i < 3; i++) {
 			int pad;
@@ -542,7 +549,7 @@ int main(void)
 			tmp = vecs[i] - baseline[i];
 
 		}
-		
+		//Se guardan valores leidos en baseline
 		if (count == 100) {
 			baseline[0] = vecs[0];
 			baseline[1] = vecs[1];
@@ -553,6 +560,9 @@ int main(void)
 		for (i = 0; i < 80000; i++)    /* Wait a bit. */
 			__asm__("nop");
 		//-----------------------------
+		//Se crean variables para cada uno de los ejes
+		//Se leen en xyz
+		//Se pasan a char en abc para imprimir en LCD
 		char a[10];
 		char b[10];
 		char c[10];
@@ -563,12 +573,17 @@ int main(void)
 		sprintf(b, "%d", y);
 		sprintf(c, "%d", z);
 
+		//Se lee A2
 		char v[10];
-		uint16_t input_adc1 = read_adc_naiive(2);
+		uint16_t input_adc1 = read_adc_naiive(2)*0.128571;
 		sprintf(v, "%d", input_adc1);
 
 		
-
+		//Se imprime en pantalla 
+		//Informacion descriptiva
+		//Valores de los ejes
+		//Valor de tension
+		//Estado bateria y comunicacion usart
 		gfx_setTextColor(LCD_BLUE, LCD_BLACK);
 		gfx_setTextSize(2);
 
@@ -608,6 +623,8 @@ int main(void)
 		}
 
 		gfx_setTextColor(LCD_MAGENTA, LCD_BLACK);
+		//Si se tiene USART_mode en alto se envia informacion por USART
+		//Se imprime estado de comunicacion USART_mode
 		if(USART_mode == true){
 			gfx_setTextSize(2);
 			gfx_setCursor(10, 300);

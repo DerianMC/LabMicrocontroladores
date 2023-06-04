@@ -6,18 +6,22 @@ import paho.mqtt.client as mqtt
 import json 
 import ssl, socket
 
+
+#Se establecen valores para comunicacion
 line = []
 data=dict()
 broker = "iot.eie.ucr.ac.cr"
 port = 1883
 topic = "v1/devices/me/telemetry"
 username = "STM32-C04938"
-password = "obdu7hromba0can6t8pt"
+password = "bofpnizza9572m6kuxa6"
 
 
+#Funcion encargada de imprimir si se publico en USART
 def on_publish(client,userdata,result):             #create function for callback
     print("data published to thingsboard \n")
     pass
+#Se define client1
 client1= mqtt.Client("control1")                    #create client object
 client1.on_publish = on_publish                     #assign function to callback
 client1.username_pw_set(password)               #access token from thingsboard device
@@ -25,8 +29,9 @@ client1.connect(broker,port,keepalive=60)           #establish connection
 
 
 #Establece ser como serial screen -U /dev/ttyACM0 115200
+#Se debe modificar ACM* dependiendo de en que puerto lo detecte la PC
 ser = serial.Serial(
-    port='/dev/ttyACM1',\
+    port='/dev/ttyACM0',\
     baudrate=115200,\
     parity=serial.PARITY_NONE,\
     stopbits=serial.STOPBITS_ONE,\
@@ -80,16 +85,17 @@ with open('output.csv', 'w', encoding='UTF8', newline='') as f:
                 print(string)
                 clmn = ""
                 i = True
+                #Se crea payload con la info de cada uno de los ejes y la tension
                 payload="{"
                 payload+="\"x\":" + string[0] + ","; 
                 payload+="\"y\":"+string[1] + ","; 
                 payload+="\"z\":"+string[2] + ","; 
                 payload+="\"v\":"+string[3]; 
                 payload+="}"
+                #Se publica en Thingsboard
                 client1.publish(topic, payload)
             #Cuando el tamaño de string contenga lo requerido se escribe row en csv
-            if(numpy.size(string) == 5):
-                writer.writerow(string)
+
         
 
 
