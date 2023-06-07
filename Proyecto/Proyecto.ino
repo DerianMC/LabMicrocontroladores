@@ -17,11 +17,20 @@
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <BlynkSimpleEsp32.h>
+#include <OneWire.h>
+#include <DallasTemperature.h> 
+
+const byte pinDatosDQ = 36;
+
+OneWire oneWireObjeto(pinDatosDQ);
+DallasTemperature sensorDS18B20(&oneWireObjeto);
 
 // Your WiFi credentials.
 // Set password to "" for open networks.
 char ssid[] = "Redmi_note";
 char pass[] = "ahkshrnnh";
+
+int estado;
 
 BlynkTimer timer;
 
@@ -30,17 +39,10 @@ BLYNK_WRITE(V0)
 {
   // Set incoming value from pin V0 to a variable
   int value = param.asInt();
-  int valor = 0;
+  estado = value;
 
-  if(param.asInt() == 1){
-    digitalWrite(LED_PIN,HIGH);
-    delay(3000);
-    
-  }
-  else{
-    digitalWrite(LED_PIN,LOW);
-  }
-  Blynk.virtualWrite(V0, valor);
+  
+  
 }
 
 // This function is called every time the device is connected to the Blynk.Cloud
@@ -55,9 +57,7 @@ BLYNK_CONNECTED()
 // This function sends Arduino's uptime every second to Virtual Pin 2.
 void myTimerEvent()
 {
-  // You can send any value at any time.
-  // Please don't send more that 10 values per second.
-  Blynk.virtualWrite(V2, millis() / 1000);
+  ;
 }
 
 void setup()
@@ -73,10 +73,26 @@ void setup()
 
   // Setup a function to be called every second
   timer.setInterval(1000L, myTimerEvent);
+
+  sensorDS18B20.begin();
 }
 
 void loop()
 {
   Blynk.run();
   timer.run();
+
+  sensorDS18B20.requestTemperatures();
+  char button[10];
+  sprintf(button,"%d", sensorDS18B20.getTempCByIndex(1));
+  Serial.print(button);
+  Blynk.virtualWrite(V2, button);
+
+  if(estado == 1){
+    digitalWrite(LED_PIN,HIGH);
+    
+  }
+  else{
+    digitalWrite(LED_PIN,LOW);
+  }
 }
