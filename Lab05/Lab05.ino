@@ -19,7 +19,7 @@ const int numSamples = 119;
 int samplesRead = numSamples;
 
 void setup() {
-  Serial.begin(57600);
+  Serial.begin(9600);
   while (!Serial);
 
   if (!IMU.begin()) {
@@ -28,7 +28,7 @@ void setup() {
   }
 
   // print the header
-  Serial.println("aX,aY,aZ,gX,gY,gZ");
+
 }
 
 void loop() {
@@ -66,16 +66,18 @@ void loop() {
 
       // print the data in CSV format
       Serial.print(aX, 3);
-      Serial.print(',');
+      Serial.print(";");
       Serial.print(aY, 3);
-      Serial.print(',');
+      Serial.print(";");
       Serial.print(aZ, 3);
-      Serial.print(',');
+      Serial.print(";");
       Serial.print(gX, 3);
-      Serial.print(',');
+      Serial.print(";");
       Serial.print(gY, 3);
-      Serial.print(',');
+      Serial.print(";");
       Serial.print(gZ, 3);
+      Serial.print(";");
+      Serial.print(":");
       Serial.println();
 
       if (samplesRead == numSamples) {
