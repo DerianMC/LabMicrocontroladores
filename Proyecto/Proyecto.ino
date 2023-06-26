@@ -18,12 +18,16 @@
 #include <WiFiClient.h>
 #include <BlynkSimpleEsp32.h>
 #include <OneWire.h>
-#include <DallasTemperature.h> 
+#include <DallasTemperature.h>
 
 const byte pinDatosDQ = 36;
+const int oneWireBus = 4; 
 
-OneWire oneWireObjeto(pinDatosDQ);
-DallasTemperature sensorDS18B20(&oneWireObjeto);
+// Setup a oneWire instance to communicate with any OneWire devices
+OneWire oneWire(oneWireBus);
+
+// Pass our oneWire reference to Dallas Temperature sensor 
+DallasTemperature sensors(&oneWire);
 
 // Your WiFi credentials.
 // Set password to "" for open networks.
@@ -65,6 +69,8 @@ void setup()
   // Debug console
   Serial.begin(115200);
   pinMode(25, OUTPUT);
+  // Start the DS18B20 sensor
+  sensors.begin();
 
   Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
   // You can also specify server:
@@ -74,7 +80,7 @@ void setup()
   // Setup a function to be called every second
   timer.setInterval(1000L, myTimerEvent);
 
-  sensorDS18B20.begin();
+
 }
 
 void loop()
@@ -82,11 +88,7 @@ void loop()
   Blynk.run();
   timer.run();
 
-  sensorDS18B20.requestTemperatures();
-  char button[10];
-  sprintf(button,"%d", sensorDS18B20.getTempCByIndex(1));
-  Serial.print(button);
-  Blynk.virtualWrite(V2, button);
+  
 
   if(estado == 1){
     digitalWrite(LED_PIN,HIGH);
@@ -95,4 +97,14 @@ void loop()
   else{
     digitalWrite(LED_PIN,LOW);
   }
+  sensors.requestTemperatures(); 
+  float temperatureC = sensors.getTempCByIndex(0);
+  float temperatureF = sensors.getTempFByIndex(0);
+  Serial.print(temperatureC);
+  Serial.println("ºC");
+  Serial.print(temperatureF);
+  Serial.println("ºF");
+  delay(5000);
+  Blynk.virtualWrite(V2, temperatureC);
+
 }
