@@ -24,10 +24,10 @@ ser = serial.Serial(
 )
 
 # Open the CSV file for writing
-with open('punno.csv', 'w', encoding='UTF8', newline='') as f:
+with open('recog.csv', 'w', encoding='UTF8', newline='') as f:
     writer = csv.writer(f)
     # Write the CSV header
-    header = ['aX', 'aY', 'aZ', 'gX', 'gY', 'gZ']
+    header = ['Puño', 'estiramiento', 'codo']
     writer.writerow(header)
 
     print("Connected to: " + ser.portstr)

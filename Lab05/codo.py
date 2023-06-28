@@ -66,3 +66,4 @@ with open('codo.csv', 'w', encoding='UTF8', newline='') as f:
             # If the string has the required number of values, write it to the CSV
             if i == True:
                 writer.writerow(string)
+                f.flush()

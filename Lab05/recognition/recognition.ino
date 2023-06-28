@@ -66,15 +66,6 @@ void setup() {
     while (1);
   }
 
-  // print out the samples rates of the IMUs
-  Serial.print("Accelerometer sample rate = ");
-  Serial.print(IMU.accelerationSampleRate());
-  Serial.println(" Hz");
-  Serial.print("Gyroscope sample rate = ");
-  Serial.print(IMU.gyroscopeSampleRate());
-  Serial.println(" Hz");
-
-  Serial.println();
 
   // get the TFL representation of the model byte array
   tflModel = tflite::GetModel(model);
@@ -147,10 +138,12 @@ void loop() {
 
         // Loop through the output tensor values from the model
         for (int i = 0; i < NUM_GESTURES; i++) {
-          Serial.print(GESTURES[i]);
-          Serial.print(": ");
-          Serial.println(tflOutputTensor->data.f[i], 6);
+          Serial.print("");
+          Serial.print(tflOutputTensor->data.f[i], 6);
+          Serial.print(";");
         }
+        Serial.print(":");
+        
         Serial.println();
       }
     }
