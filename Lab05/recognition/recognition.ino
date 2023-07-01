@@ -1,3 +1,9 @@
+// Se toma como guia el ejemplo de "Get Started With Machine Learning on Arduino"
+// Se realizan las modificaciones necesarias para la captura correcta de los datos
+// Derechos reservados para arduino.cc
+
+
+
 /*
   IMU Classifier
   This example uses the on-board IMU to start reading acceleration and gyroscope
@@ -12,8 +18,13 @@
   Modified by Dominic Pajak, Sandeep Mistry
   This example code is in the public domain.
 */
+
+// Se incluye el sensor integrado en Arduino nano ble
 #include <Arduino_LSM9DS1.h>
 
+// Inclusion de librerias de tensor flow 
+// Al realizarse el include se pueden tener errores 
+// Por esto de micro_interpreter.h se incluye la ruta completa
 #include <TensorFlowLite.h>
 #include <tensorflow/lite/micro/all_ops_resolver.h>
 #include <tensorflow/lite/micro/tflite_bridge/micro_error_reporter.h>
@@ -21,7 +32,7 @@
 #include <tensorflow/lite/schema/schema_generated.h>
 
 
-
+// Se inclute el modelo generado 
 #include "model.h"
 
 const float accelerationThreshold = 2.5; // threshold of significant in G's
@@ -48,14 +59,17 @@ constexpr int tensorArenaSize = 8 * 1024;
 byte tensorArena[tensorArenaSize] __attribute__((aligned(16)));
 
 // array to map gesture index to a name
+// En este array se agregan los nombres para cada uno de los gestos
 const char* GESTURES[] = {
   "punno",
   "estiramiento",
   "codo"
 };
 
+// Definicion del numero de gestos
 #define NUM_GESTURES (sizeof(GESTURES) / sizeof(GESTURES[0]))
 
+// Conexion serial e inicializacion de IMU
 void setup() {
   Serial.begin(9600);
   while (!Serial);
@@ -66,7 +80,7 @@ void setup() {
     while (1);
   }
 
-
+  // Se obtiene el modelo desde el archivo
   // get the TFL representation of the model byte array
   tflModel = tflite::GetModel(model);
   if (tflModel->version() != TFLITE_SCHEMA_VERSION) {
@@ -74,6 +88,7 @@ void setup() {
     while (1);
   }
 
+  // Se elimina &tflErrorReporter ya que la version actualizada de Tensor Flow provoca un error
   // Create an interpreter to run the model
   tflInterpreter = new tflite::MicroInterpreter(tflModel, tflOpsResolver, tensorArena, tensorArenaSize);
 
@@ -90,6 +105,7 @@ void loop() {
   float aX, aY, aZ, gX, gY, gZ;
 
   // wait for significant motion
+  // Espera a que haya movimiento significativo
   while (samplesRead == numSamples) {
     if (IMU.accelerationAvailable()) {
       // read the acceleration data
@@ -137,6 +153,8 @@ void loop() {
         }
 
         // Loop through the output tensor values from the model
+        // Se imprimen por puerto serial los porcentajes de certidumbre
+        // Se imprimen de manera que puedan ser capturados por script
         for (int i = 0; i < NUM_GESTURES; i++) {
           Serial.print("");
           Serial.print(tflOutputTensor->data.f[i], 6);

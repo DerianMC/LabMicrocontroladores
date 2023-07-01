@@ -1,4 +1,8 @@
 #!/usr/bin/python3
+
+# Script para captura de movimiento de puño
+# Se corre para la captura de este movimiento en especifico
+
 import serial.tools.list_ports
 import csv
 

@@ -1,3 +1,8 @@
+// Se toma como guia el ejemplo de "Get Started With Machine Learning on Arduino"
+// Se realizan las modificaciones necesarias para la captura correcta de los datos
+// Derechos reservados para arduino.cc
+
+
 /*
   IMU Capture
   This example uses the on-board IMU to start reading acceleration and gyroscope
@@ -11,13 +16,16 @@
   This example code is in the public domain.
 */
 
+// Se incluye el sensor integrado en Arduino nano ble
 #include <Arduino_LSM9DS1.h>
 
+//Se definen constantes
 const float accelerationThreshold = 2.5; // threshold of significant in G's
 const int numSamples = 119;
 
 int samplesRead = numSamples;
 
+// Conexion serial e inicializacion de IMU
 void setup() {
   Serial.begin(9600);
   while (!Serial);
@@ -26,15 +34,16 @@ void setup() {
     Serial.println("Failed to initialize IMU!");
     while (1);
   }
-
-  // print the header
-
 }
 
+
 void loop() {
+  // Definicion de los valores a obtener del acelerometro
   float aX, aY, aZ, gX, gY, gZ;
 
   // wait for significant motion
+  // Espera a detectar algun cambio en los sensores
+  // Cuando se da el cambia realiza la lectura del acelerometro 
   while (samplesRead == numSamples) {
     if (IMU.accelerationAvailable()) {
       // read the acceleration data
@@ -57,14 +66,17 @@ void loop() {
   while (samplesRead < numSamples) {
     // check if both new acceleration and gyroscope data is
     // available
+    // Realiza la lectura del acelerometro y el giroscopio 
     if (IMU.accelerationAvailable() && IMU.gyroscopeAvailable()) {
       // read the acceleration and gyroscope data
       IMU.readAcceleration(aX, aY, aZ);
       IMU.readGyroscope(gX, gY, gZ);
 
+      // Aumenta el numero de muestras leidas 
       samplesRead++;
 
       // print the data in CSV format
+      // Se imprime en este formato para que pueda ser capturado de manera correcta por el script
       Serial.print(aX, 3);
       Serial.print(";");
       Serial.print(aY, 3);

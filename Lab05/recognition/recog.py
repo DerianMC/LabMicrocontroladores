@@ -1,4 +1,8 @@
 #!/usr/bin/python3
+
+# Script para captura de certidumbre de cada uno de los movimientos 
+# Guarda datos en csv
+
 import serial.tools.list_ports
 import csv
 
