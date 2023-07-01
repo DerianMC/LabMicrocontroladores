@@ -12,7 +12,7 @@
 /* Comment this out to disable prints and save space */
 #define BLYNK_PRINT Serial
 
-#define LED_PIN 25
+#define LED_PIN 0
 
 #include <WiFi.h>
 #include <WiFiClient.h>
@@ -68,7 +68,7 @@ void setup()
 {
   // Debug console
   Serial.begin(115200);
-  pinMode(25, OUTPUT);
+  pinMode(LED_PIN, OUTPUT);
   // Start the DS18B20 sensor
   sensors.begin();
 
@@ -104,7 +104,7 @@ void loop()
   Serial.println("ºC");
   Serial.print(temperatureF);
   Serial.println("ºF");
-  delay(5000);
+  delay(10);
   Blynk.virtualWrite(V2, temperatureC);
 
 }
