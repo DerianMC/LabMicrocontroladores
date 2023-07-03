@@ -12,7 +12,9 @@
 /* Comment this out to disable prints and save space */
 #define BLYNK_PRINT Serial
 
-#define LED_PIN 0
+#define POWER_PIN 0
+
+#define WATER_PIN 16
 
 #include <WiFi.h>
 #include <WiFiClient.h>
@@ -34,7 +36,18 @@ DallasTemperature sensors(&oneWire);
 char ssid[] = "Redmi_note";
 char pass[] = "ahkshrnnh";
 
-int estado;
+int START;
+float TIEMPO = 0.5;
+int tiempo_restante;
+
+enum STATES {
+  ESPERA,
+  CARGA,
+  HERVIDO,
+  FIN
+};
+
+STATES currentState;
 
 BlynkTimer timer;
 
@@ -43,10 +56,14 @@ BLYNK_WRITE(V0)
 {
   // Set incoming value from pin V0 to a variable
   int value = param.asInt();
-  estado = value;
+  START = value;
+}
 
-  
-  
+BLYNK_WRITE(V1)
+{
+  // Set incoming value from pin V0 to a variable
+  float value = param.asFloat();
+  TIEMPO = value;
 }
 
 // This function is called every time the device is connected to the Blynk.Cloud
@@ -68,7 +85,8 @@ void setup()
 {
   // Debug console
   Serial.begin(115200);
-  pinMode(LED_PIN, OUTPUT);
+  pinMode(POWER_PIN, OUTPUT);
+  pinMode(WATER_PIN, OUTPUT);
   // Start the DS18B20 sensor
   sensors.begin();
 
@@ -79,32 +97,74 @@ void setup()
 
   // Setup a function to be called every second
   timer.setInterval(1000L, myTimerEvent);
-
-
+  Blynk.virtualWrite(V1, 0.5);
+  currentState = ESPERA;
+  
 }
 
 void loop()
 {
+  
+
   Blynk.run();
   timer.run();
 
-  
-
-  if(estado == 1){
-    digitalWrite(LED_PIN,HIGH);
-    
-  }
-  else{
-    digitalWrite(LED_PIN,LOW);
-  }
   sensors.requestTemperatures(); 
   float temperatureC = sensors.getTempCByIndex(0);
-  float temperatureF = sensors.getTempFByIndex(0);
   Serial.print(temperatureC);
   Serial.println("ºC");
-  Serial.print(temperatureF);
-  Serial.println("ºF");
+  Serial.println(currentState);
   delay(10);
   Blynk.virtualWrite(V2, temperatureC);
+
+  switch(currentState)
+  {
+    case ESPERA:
+      tiempo_restante = TIEMPO*80;
+      digitalWrite(POWER_PIN, LOW);
+      digitalWrite(WATER_PIN, LOW);
+      if(START == 1){
+        currentState = CARGA;
+      }
+    break;
+    case CARGA:
+      if(START == 1){
+        digitalWrite(WATER_PIN, HIGH);
+        tiempo_restante--;
+        delay(990);
+        if(tiempo_restante<5){
+          currentState = HERVIDO;
+          digitalWrite(WATER_PIN, LOW);
+        }
+        }
+      else{
+        digitalWrite(WATER_PIN, LOW);
+      }
+    break;
+    case HERVIDO:
+      if(START == 1){
+        if(temperatureC < 92){
+          digitalWrite(POWER_PIN, HIGH);
+          digitalWrite(WATER_PIN, LOW);
+        }
+        else{
+          digitalWrite(POWER_PIN, LOW);
+          currentState = FIN;
+        }
+        }
+      else{
+        digitalWrite(POWER_PIN, LOW);
+      }
+    break;
+    case FIN:
+      if(temperatureC < 90){
+        digitalWrite(POWER_PIN, HIGH);
+        digitalWrite(WATER_PIN, LOW);
+      }
+      else if(temperatureC > 92){
+        digitalWrite(POWER_PIN, LOW);
+      }
+    break; 
+  }
 
 }
