@@ -36,10 +36,13 @@ DallasTemperature sensors(&oneWire);
 char ssid[] = "Redmi_note";
 char pass[] = "ahkshrnnh";
 
+
+//Variables necesarias en codigo
 int START;
 float TIEMPO = 0.5;
 int tiempo_restante;
 
+//Estados de maquina de estados 
 enum STATES {
   ESPERA,
   CARGA,
@@ -47,6 +50,7 @@ enum STATES {
   FIN
 };
 
+//Definicion de estado actual como uno e STATES
 STATES currentState;
 
 BlynkTimer timer;
@@ -108,17 +112,21 @@ void loop()
 
   Blynk.run();
   timer.run();
-
+  //Se obtiene temperatura en celcius
   sensors.requestTemperatures(); 
   float temperatureC = sensors.getTempCByIndex(0);
   Serial.print(temperatureC);
   Serial.println("ºC");
   Serial.println(currentState);
   delay(10);
+  //Se escribe temperatura en Blynk
   Blynk.virtualWrite(V2, temperatureC);
 
+
+  //Inicia maquina de estados 
   switch(currentState)
   {
+    //Se mantiene en ESPERA hasta sennal de inicio
     case ESPERA:
       tiempo_restante = TIEMPO*80;
       digitalWrite(POWER_PIN, LOW);
@@ -127,6 +135,7 @@ void loop()
         currentState = CARGA;
       }
     break;
+    //Mantiene bomba encendida durante tiempo_restante segundos
     case CARGA:
       if(START == 1){
         digitalWrite(WATER_PIN, HIGH);
@@ -141,6 +150,8 @@ void loop()
         digitalWrite(WATER_PIN, LOW);
       }
     break;
+
+    //Pasa a fin cuando T>92
     case HERVIDO:
       if(START == 1){
         if(temperatureC < 92){
@@ -148,7 +159,6 @@ void loop()
           digitalWrite(WATER_PIN, LOW);
         }
         else{
-          digitalWrite(POWER_PIN, LOW);
           currentState = FIN;
         }
         }
@@ -156,14 +166,21 @@ void loop()
         digitalWrite(POWER_PIN, LOW);
       }
     break;
+    //Mantiene agua dentro de un rango de valores, 92 y 95
     case FIN:
-      if(temperatureC < 90){
-        digitalWrite(POWER_PIN, HIGH);
-        digitalWrite(WATER_PIN, LOW);
+      if(START == 1){
+        if(temperatureC < 92){
+          digitalWrite(POWER_PIN, HIGH);
+          digitalWrite(WATER_PIN, LOW);
+        }
+        else if(temperatureC > 95){
+          digitalWrite(POWER_PIN, LOW);
+        }
       }
-      else if(temperatureC > 92){
+      else{
         digitalWrite(POWER_PIN, LOW);
       }
+      
     break; 
   }
 
